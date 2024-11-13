@@ -3,7 +3,9 @@
     Module that implements session authentication mechanism
 """
 from api.v1.auth.auth import Auth
+from flask import request
 import uuid
+import os
 
 
 class SessionAuth(Auth):
@@ -28,3 +30,5 @@ class SessionAuth(Auth):
         if not isinstance(session_id, str):
             return None
         return self.user_id_by_session_id.get(session_id)
+        
+        
