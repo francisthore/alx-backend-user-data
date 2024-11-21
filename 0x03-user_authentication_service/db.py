@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """DB module
 """
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, tuple_
+from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
-
+from sqlalchemy.orm.exc import NoResultFound
 from user import Base, User
 
 
@@ -36,4 +36,21 @@ class DB:
         session = self._session
         session.add(user)
         session.commit()
+        return user
+
+    def find_user_by(self, **kwargs) -> User:
+        """Find a user by given attributes."""
+        if not kwargs:
+            raise InvalidRequestError("No search parameters provided.")
+        for key in kwargs:
+            if not hasattr(User, key):
+                raise InvalidRequestError(f"Invalid attribute: {key}")
+        session = self._session
+        query = session.query(User)
+        filter_condition = tuple_(*(getattr(User, key) for key in kwargs)).in_(
+            [tuple(kwargs.values())]
+        )
+        user = query.filter(filter_condition).first()
+        if not user:
+            raise NoResultFound("User not found")
         return user
